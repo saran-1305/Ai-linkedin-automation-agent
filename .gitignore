@@ -1,0 +1,65 @@
+# ============================================================
+# LinkedIn Growth Agent - .gitignore
+# ============================================================
+
+# --- Environment / Secrets (NEVER commit these) ---
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+*.env
+
+# --- Node ---
+node_modules/
+dist/
+build/
+.vite/
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+*.egg-info/
+dist/
+.eggs/
+htmlcov/
+.coverage
+.coverage.*
+*.cover
+
+# --- Database files ---
+*.db
+*.sqlite
+*.sqlite3
+backend/data/*.db
+
+# --- APScheduler job store ---
+backend/publishing_jobs.sqlite
+
+# --- OS ---
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+
+# --- IDE ---
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Uploads / user files ---
+backend/uploads/
+backend/data/uploads/

@@ -1,0 +1,136 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@theme {
+  /* Typography */
+  --font-sans: 'Inter', sans-serif;
+  
+  /* Color System */
+  /* Backgrounds */
+  --color-background: #09090B; /* Zinc 950 */
+  --color-surface: #18181B; /* Zinc 900 */
+  --color-surface-hover: #27272A; /* Zinc 800 */
+  
+  /* Brand/Accent */
+  --color-primary: #FFFFFF; /* High contrast for enterprise */
+  --color-primary-foreground: #09090B;
+  --color-secondary: #27272A; /* Zinc 800 */
+  --color-secondary-foreground: #FAFAFA; /* Zinc 50 */
+  --color-accent: #5B8CFF; /* Kept original blue as an accent */
+  --color-accent-foreground: #FFFFFF;
+
+  /* Status */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #3B82F6;
+
+  /* Text */
+  --color-text-primary: #FAFAFA; /* Zinc 50 */
+  --color-text-secondary: #A1A1AA; /* Zinc 400 */
+  --color-text-muted: #71717A; /* Zinc 500 */
+
+  /* UI Elements */
+  --color-border: #27272A; /* Zinc 800 */
+  --color-divider: #27272A;
+  --color-ring: #5B8CFF; /* Focus ring */
+  --color-muted: #27272A; /* Zinc 800 */
+  --color-muted-foreground: #A1A1AA;
+
+  /* Spacing Scale */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* Shadows (Soft & Minimal) */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-dropdown: 0 10px 38px -10px rgba(0, 0, 0, 0.5), 0 10px 20px -15px rgba(0, 0, 0, 0.2);
+
+  /* Animation */
+  --animate-in: animate-in 200ms ease-out;
+  --animate-out: animate-out 200ms ease-in;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-text-primary font-sans antialiased;
+    /* Ensure selection color looks good */
+    ::selection {
+      @apply bg-accent/30 text-white;
+    }
+  }
+
+  /* Custom scrollbar for webkit */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-surface-hover rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-border;
+  }
+}
+
+@layer components {
+  /* Typography Semantic Classes */
+  .text-display {
+    @apply text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl;
+  }
+  .text-heading {
+    @apply text-2xl font-semibold tracking-tight md:text-3xl;
+  }
+  .text-title {
+    @apply text-xl font-semibold tracking-tight;
+  }
+  .text-subtitle {
+    @apply text-lg font-medium text-text-secondary;
+  }
+  .text-body {
+    @apply text-base text-text-primary leading-7;
+  }
+  .text-caption {
+    @apply text-sm text-text-secondary;
+  }
+  .text-small {
+    @apply text-xs text-text-muted font-medium uppercase tracking-wider;
+  }
+  .text-code {
+    @apply font-mono text-sm bg-surface p-1 rounded-sm border border-border;
+  }
+
+  /* Focus outline utility */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+}
+
+/* Light Mode Override */
+.light-theme {
+  filter: invert(1) hue-rotate(180deg);
+  background-color: #f4f4f5;
+}
+.light-theme img, .light-theme video, .light-theme .fc-theme-standard {
+  filter: invert(1) hue-rotate(180deg);
+}
+

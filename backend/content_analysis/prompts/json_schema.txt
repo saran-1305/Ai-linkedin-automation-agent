@@ -1,0 +1,38 @@
+{
+  "document_type": "string",
+  "summary": "string",
+  "overall_confidence": "float",
+  "topics": [
+    {
+      "topic_type": "string",
+      "topic_name": "string",
+      "confidence": "float"
+    }
+  ],
+  "keywords": [
+    {
+      "keyword_type": "string",
+      "keyword": "string"
+    }
+  ],
+  "writing_styles": ["string"],
+  "tones": [
+    {
+      "tone_name": "string",
+      "confidence": "float"
+    }
+  ],
+  "audiences": [
+    {
+      "audience_segment": "string",
+      "confidence": "float"
+    }
+  ],
+  "ctas": [
+    {
+      "cta_text": "string",
+      "cta_type": "string"
+    }
+  ],
+  "content_pillars": ["string"]
+}

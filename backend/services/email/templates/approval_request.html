@@ -1,0 +1,42 @@
+{% extends "base_email.html" %}
+
+{% block title %}Approval needed: {{ platform_name }} post for {{ workspace_name }}{% endblock %}
+{% block preheader %}A {{ platform_name }} post is waiting on your approval before it goes live.{% endblock %}
+
+{% block content %}
+<h1 style="margin:0 0 8px; font-size: 20px; font-weight: 700; color:#111827;">Post ready for your approval</h1>
+<p style="margin:0 0 24px; font-size: 14px; line-height:1.6; color:#4b5563;">
+  {{ workspace_name }} has a {{ platform_name }} post scheduled for
+  <strong>{{ scheduled_time }}</strong> that needs your approval before it publishes.
+</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; margin-bottom:24px;">
+  <tr>
+    <td style="padding: 20px; font-family: Segoe UI, Arial, sans-serif;">
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+        {{ platform_name }} Preview
+      </div>
+      <div style="font-size:14px; line-height:1.6; color:#1f2937; white-space:pre-wrap;">{{ content_preview }}</div>
+    </td>
+  </tr>
+</table>
+
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 24px;">
+  <tr>
+    <td style="padding: 0 8px;">
+      <a href="{{ approve_url }}" style="display:inline-block; padding: 12px 28px; background-color:#16a34a; color:#ffffff; font-family: Segoe UI, Arial, sans-serif; font-size:14px; font-weight:700; text-decoration:none; border-radius:8px;">
+        ✓ Approve &amp; Publish
+      </a>
+    </td>
+    <td style="padding: 0 8px;">
+      <a href="{{ reject_url }}" style="display:inline-block; padding: 12px 28px; background-color:#dc2626; color:#ffffff; font-family: Segoe UI, Arial, sans-serif; font-size:14px; font-weight:700; text-decoration:none; border-radius:8px;">
+        ✕ Reject
+      </a>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0; font-size: 12px; line-height:1.6; color:#9ca3af; text-align:center;">
+  This approval link expires on {{ expires_at }}. If it expires, the post will stay pending until you review it in-app.
+</p>
+{% endblock %}

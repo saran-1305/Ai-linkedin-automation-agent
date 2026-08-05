@@ -1,0 +1,25 @@
+Below is a document imported from {source}.
+
+### Document Statistics
+- Word Count: {word_count}
+- Language: {language}
+
+### Document Text
+{document_text}
+
+### Instructions
+Analyze the text above and return a structured JSON object exactly matching the provided schema.
+
+- "document_type": e.g., Blog, Case Study, Landing Page, Tutorial, Documentation, News, Founder Story, Announcement.
+- "summary": Max 150 words.
+- "topics": Identify Primary, Secondary, and Subtopics with a confidence score (0.0 to 1.0).
+- "keywords": Extract Primary, Secondary, Industry Terms, and Named Entities.
+- "writing_style": e.g., Educational, Storytelling, Technical, Conversational, Professional, Persuasive, Data Driven, Opinion Based.
+- "tone": e.g., Professional, Friendly, Confident, Educational, Inspirational, Analytical, Urgent, Casual, with confidence.
+- "audience": Who is this for? e.g., Founders, Startup Teams, Developers, Enterprise, Marketing, Sales, Students, General Audience, with confidence.
+- "cta": Extract calls to action (e.g., "Book a Demo") and their type (e.g., "Book Demo", "Learn More", "Subscribe").
+- "content_pillars": High-level themes like AI, Leadership, Growth, Innovation, Marketing, Operations, Hiring, Customer Success, Product.
+- "confidence": Overall confidence in your analysis (0.0 to 1.0).
+
+### Expected JSON Schema
+{json_schema}

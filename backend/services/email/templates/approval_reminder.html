@@ -1,0 +1,51 @@
+{% extends "base_email.html" %}
+
+{% block title %}Reminder: approval needed for {{ platform_name }} post{% endblock %}
+{% block preheader %}Your approval is still pending and the link expires soon.{% endblock %}
+
+{% block content %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+  <tr>
+    <td style="background-color:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding: 12px 16px; font-family: Segoe UI, Arial, sans-serif; font-size:13px; color:#92400e; font-weight:600;">
+      ⏰ Reminder — this approval is still pending
+    </td>
+  </tr>
+</table>
+
+<h1 style="margin:0 0 8px; font-size: 20px; font-weight: 700; color:#111827;">A post is still waiting on you</h1>
+<p style="margin:0 0 24px; font-size: 14px; line-height:1.6; color:#4b5563;">
+  {{ workspace_name }}'s {{ platform_name }} post scheduled for <strong>{{ scheduled_time }}</strong>
+  hasn't been approved yet. The approval link expires in
+  <strong>{{ hours_remaining }}</strong> — please review it soon so publishing isn't delayed.
+</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; margin-bottom:24px;">
+  <tr>
+    <td style="padding: 20px; font-family: Segoe UI, Arial, sans-serif;">
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+        {{ platform_name }} Preview
+      </div>
+      <div style="font-size:14px; line-height:1.6; color:#1f2937; white-space:pre-wrap;">{{ content_preview }}</div>
+    </td>
+  </tr>
+</table>
+
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 24px;">
+  <tr>
+    <td style="padding: 0 8px;">
+      <a href="{{ approve_url }}" style="display:inline-block; padding: 12px 28px; background-color:#16a34a; color:#ffffff; font-family: Segoe UI, Arial, sans-serif; font-size:14px; font-weight:700; text-decoration:none; border-radius:8px;">
+        ✓ Approve &amp; Publish
+      </a>
+    </td>
+    <td style="padding: 0 8px;">
+      <a href="{{ reject_url }}" style="display:inline-block; padding: 12px 28px; background-color:#dc2626; color:#ffffff; font-family: Segoe UI, Arial, sans-serif; font-size:14px; font-weight:700; text-decoration:none; border-radius:8px;">
+        ✕ Reject
+      </a>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0; font-size: 12px; line-height:1.6; color:#9ca3af; text-align:center;">
+  This approval link expires on {{ expires_at }}.
+</p>
+{% endblock %}
