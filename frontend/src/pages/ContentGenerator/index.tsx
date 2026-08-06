@@ -11,6 +11,7 @@ import {
   Send, Calendar, Download, FileText
 } from 'lucide-react';
 import { PlatformEngine } from './components/PlatformEngine';
+import DeveloperOnly from '../../components/DeveloperOnly';
 
 const ExplainabilityBadge = ({ reasoning, confidence }: any) => {
   const [show, setShow] = useState(false);
@@ -316,24 +317,26 @@ export const ContentGenerator = () => {
             
              {/* AI Toolbar */}
             <div className="flex items-center justify-between p-2.5 border-b border-border bg-surface-hover/50 overflow-x-auto custom-scrollbar">
-               <div className="flex items-center gap-1.5">
-                 <Button disabled={processingAction !== null} onClick={() => handleToolbarAction('Format')} variant="ghost" size="sm" className="text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-background h-8 px-2.5">
-                   {processingAction === 'Format' ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <AlignLeft className="w-3.5 h-3.5 mr-1.5" />} Format
-                 </Button>
-                 <div className="w-px h-4 bg-border mx-1" />
-                 <Button disabled={processingAction !== null} onClick={() => handleToolbarAction('Rewrite')} variant="ghost" size="sm" className="text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-background h-8 px-2.5">
-                   {processingAction === 'Rewrite' ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 mr-1.5" />} Rewrite
-                 </Button>
-                 <Button disabled={processingAction !== null} onClick={() => handleToolbarAction('Expand')} variant="ghost" size="sm" className="text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-background h-8 px-2.5">
-                   {processingAction === 'Expand' ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Maximize2 className="w-3.5 h-3.5 mr-1.5" />} Expand
-                 </Button>
-                 <Button disabled={processingAction !== null} onClick={() => handleToolbarAction('Shorten')} variant="ghost" size="sm" className="text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-background h-8 px-2.5">
-                   {processingAction === 'Shorten' ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Minimize2 className="w-3.5 h-3.5 mr-1.5" />} Shorten
-                 </Button>
-                 <Button disabled={processingAction !== null} onClick={() => handleToolbarAction('Tone')} variant="ghost" size="sm" className="text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-background h-8 px-2.5">
-                   {processingAction === 'Tone' ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Type className="w-3.5 h-3.5 mr-1.5" />} Tone
-                 </Button>
-               </div>
+               <DeveloperOnly>
+                 <div className="flex items-center gap-1.5">
+                   <Button disabled={processingAction !== null} onClick={() => handleToolbarAction('Format')} variant="ghost" size="sm" className="text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-background h-8 px-2.5">
+                     {processingAction === 'Format' ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <AlignLeft className="w-3.5 h-3.5 mr-1.5" />} Format
+                   </Button>
+                   <div className="w-px h-4 bg-border mx-1" />
+                   <Button disabled={processingAction !== null} onClick={() => handleToolbarAction('Rewrite')} variant="ghost" size="sm" className="text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-background h-8 px-2.5">
+                     {processingAction === 'Rewrite' ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 mr-1.5" />} Rewrite
+                   </Button>
+                   <Button disabled={processingAction !== null} onClick={() => handleToolbarAction('Expand')} variant="ghost" size="sm" className="text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-background h-8 px-2.5">
+                     {processingAction === 'Expand' ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Maximize2 className="w-3.5 h-3.5 mr-1.5" />} Expand
+                   </Button>
+                   <Button disabled={processingAction !== null} onClick={() => handleToolbarAction('Shorten')} variant="ghost" size="sm" className="text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-background h-8 px-2.5">
+                     {processingAction === 'Shorten' ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Minimize2 className="w-3.5 h-3.5 mr-1.5" />} Shorten
+                   </Button>
+                   <Button disabled={processingAction !== null} onClick={() => handleToolbarAction('Tone')} variant="ghost" size="sm" className="text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-background h-8 px-2.5">
+                     {processingAction === 'Tone' ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Type className="w-3.5 h-3.5 mr-1.5" />} Tone
+                   </Button>
+                 </div>
+               </DeveloperOnly>
                {isGenerated && activeContent?.reasoning && (
                  <ExplainabilityBadge reasoning={activeContent.reasoning} confidence={activeContent.confidence} />
                )}
@@ -350,15 +353,20 @@ export const ContentGenerator = () => {
                   <p className="text-text-secondary mb-8 max-w-xs font-medium text-sm leading-relaxed">
                     Generate the master draft using the execution blueprint. This will be adapted for individual platforms later.
                   </p>
-                  <Button
-                    size="lg"
-                    onClick={() => handleGenerate(selectedSlot!)}
-                    disabled={generating}
-                    className="gap-2 shadow-lg w-full max-w-xs text-sm"
-                  >
-                    {generating ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
-                    {generating ? 'Drafting Master Content...' : 'Generate Master Draft'}
-                  </Button>
+                  <DeveloperOnly>
+                    <Button
+                      size="lg"
+                      onClick={() => handleGenerate(selectedSlot!)}
+                      disabled={generating}
+                      className="gap-2 shadow-lg w-full max-w-xs text-sm"
+                    >
+                      {generating ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
+                      {generating ? 'Drafting Master Content...' : 'Generate Master Draft'}
+                    </Button>
+                  </DeveloperOnly>
+                  <div className="mt-4 text-text-muted text-xs italic">
+                    This module operates automatically in the background.
+                  </div>
                 </div>
               ) : (
                 <div className="flex-1 w-full max-w-xl mx-auto flex flex-col">
@@ -475,16 +483,18 @@ export const ContentGenerator = () => {
                          <span className="text-xs font-bold text-text-primary">{imp.improvement_type}</span>
                        </div>
                        <p className="text-xs text-text-secondary font-medium leading-relaxed mb-3">{imp.description}</p>
-                       <Button 
-                         onClick={() => handleApplyFix(idx)}
-                         disabled={processingAction === `fix-${idx}`}
-                         variant="outline" 
-                         size="sm" 
-                         className="w-full text-xs font-bold gap-1.5 h-7 bg-background"
-                       >
-                         <RefreshCw className={`w-3 h-3 ${processingAction === `fix-${idx}` ? 'animate-spin' : ''}`} /> 
-                         {processingAction === `fix-${idx}` ? 'Applying...' : 'Apply Fix'}
-                       </Button>
+                       <DeveloperOnly>
+                         <Button 
+                           onClick={() => handleApplyFix(idx)}
+                           disabled={processingAction === `fix-${idx}`}
+                           variant="outline" 
+                           size="sm" 
+                           className="w-full text-xs font-bold gap-1.5 h-7 bg-background"
+                         >
+                           <RefreshCw className={`w-3 h-3 ${processingAction === `fix-${idx}` ? 'animate-spin' : ''}`} /> 
+                           {processingAction === `fix-${idx}` ? 'Applying...' : 'Apply Fix'}
+                         </Button>
+                       </DeveloperOnly>
                      </div>
                    ))}
                  </div>
@@ -519,34 +529,36 @@ export const ContentGenerator = () => {
                <Download className="w-4 h-4" /> Export
              </Button>
              
-             <Button 
-               variant="outline" 
-               size="sm" 
-               onClick={handleGenerateAll}
-               disabled={generatingAll}
-               className="gap-2 font-bold text-primary border-primary/20 bg-primary/5 hover:bg-primary/10"
-             >
-               {generatingAll ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-               Generate All Variants
-             </Button>
+             <DeveloperOnly>
+               <Button 
+                 variant="outline" 
+                 size="sm" 
+                 onClick={handleGenerateAll}
+                 disabled={generatingAll}
+                 className="gap-2 font-bold text-primary border-primary/20 bg-primary/5 hover:bg-primary/10"
+               >
+                 {generatingAll ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                 Generate All Variants
+               </Button>
 
-             <div className="w-px h-6 bg-border mx-2"></div>
+               <div className="w-px h-6 bg-border mx-2"></div>
 
-             <Button 
-               onClick={handleApprove}
-               size="sm" 
-               className="gap-2 font-bold bg-background text-text-primary hover:bg-surface border border-border"
-             >
-               <Check className="w-4 h-4" /> Approve Draft
-             </Button>
+               <Button 
+                 onClick={handleApprove}
+                 size="sm" 
+                 className="gap-2 font-bold bg-background text-text-primary hover:bg-surface border border-border"
+               >
+                 <Check className="w-4 h-4" /> Approve Draft
+               </Button>
 
-             <Button 
-               onClick={handlePublishNow}
-               size="sm" 
-               className="gap-2 font-bold shadow-lg shadow-primary/20"
-             >
-               <Send className="w-4 h-4" /> Send to Publishing Queue
-             </Button>
+               <Button 
+                 onClick={handlePublishNow}
+                 size="sm" 
+                 className="gap-2 font-bold shadow-lg shadow-primary/20"
+               >
+                 <Send className="w-4 h-4" /> Send to Publishing Queue
+               </Button>
+             </DeveloperOnly>
           </div>
         </div>
       )}

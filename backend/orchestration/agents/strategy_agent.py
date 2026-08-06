@@ -1,8 +1,7 @@
 from typing import Dict, Any
 import logging
-import asyncio
-from sqlalchemy.orm import Session
 from orchestration.agents.base import BaseAgent
+from strategy.strategy_service import StrategyService
 
 logger = logging.getLogger(__name__)
 
@@ -13,5 +12,5 @@ class StrategyAgent(BaseAgent):
 
     async def execute(self, business_id: int, context: Dict[str, Any]) -> Dict[str, Any]:
         logger.info(f"[{self.name}] Formulating AI Marketing Strategy for Business {business_id}")
-        await asyncio.sleep(4)
-        return {"strategy_id": 1}
+        plan = StrategyService(self.db).generate_strategy(business_id)
+        return {"strategy_id": plan.id if plan else None}

@@ -27,12 +27,16 @@ class TokenResponse(BaseModel):
     user_id: int
     email: str
     name: str | None = None
+    role: str = "user"
+    developer_mode_enabled: bool = False
 
 
 class UserResponse(BaseModel):
     id: int
     email: str
     name: str | None = None
+    role: str = "user"
+    developer_mode_enabled: bool = False
 
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
@@ -50,7 +54,7 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
     db.refresh(user)
 
     token = create_access_token(user.id)
-    return TokenResponse(access_token=token, user_id=user.id, email=user.email, name=user.name)
+    return TokenResponse(access_token=token, user_id=user.id, email=user.email, name=user.name, role=user.role, developer_mode_enabled=user.developer_mode_enabled)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -62,7 +66,7 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This account has been deactivated.")
 
     token = create_access_token(user.id)
-    return TokenResponse(access_token=token, user_id=user.id, email=user.email, name=user.name)
+    return TokenResponse(access_token=token, user_id=user.id, email=user.email, name=user.name, role=user.role, developer_mode_enabled=user.developer_mode_enabled)
 
 
 @router.get("/me", response_model=UserResponse)
@@ -70,4 +74,17 @@ def get_me(user_id: int = Depends(get_current_user_id), db: Session = Depends(ge
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
-    return UserResponse(id=user.id, email=user.email, name=user.name)
+    return UserResponse(id=user.id, email=user.email, name=user.name, role=user.role, developer_mode_enabled=user.developer_mode_enabled)
+
+
+class DevModeRequest(BaseModel):
+    enabled: bool
+
+@router.post("/dev-mode")
+def toggle_dev_mode(body: DevModeRequest, user_id: int = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or user.role != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    user.developer_mode_enabled = body.enabled
+    db.commit()
+    return {"status": "ok", "enabled": user.developer_mode_enabled}

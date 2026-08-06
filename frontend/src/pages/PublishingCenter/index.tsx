@@ -9,6 +9,7 @@ import { PlatformHealth } from './components/PlatformHealth';
 import { PublishingHistory } from './components/PublishingHistory';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import DeveloperOnly from '../../components/DeveloperOnly';
 
 export const PublishingCenter = () => {
   const [activeTab, setActiveTab] = useState<'queue' | 'approved'>('queue');
@@ -361,39 +362,43 @@ export const PublishingCenter = () => {
                           </div>
                           
                           {job.status === 'Failed' && (
-                            <div className="flex items-center gap-1">
-                              <button 
-                                onClick={() => handleRetry(job.id)}
-                                className="px-2 py-1 bg-surface border border-border hover:bg-surface-hover hover:text-primary text-text-secondary rounded text-[10px] font-bold flex items-center gap-1 transition-colors"
-                              >
-                                <RefreshCw className="w-3 h-3" /> Retry
-                              </button>
-                              <button 
-                                onClick={() => handleCancelJob(job.id)}
-                                className="text-text-muted hover:text-danger transition-colors p-1"
-                                title="Delete failed post"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
+                            <DeveloperOnly>
+                              <div className="flex items-center gap-1">
+                                <button 
+                                  onClick={() => handleRetry(job.id)}
+                                  className="px-2 py-1 bg-surface border border-border hover:bg-surface-hover hover:text-primary text-text-secondary rounded text-[10px] font-bold flex items-center gap-1 transition-colors"
+                                >
+                                  <RefreshCw className="w-3 h-3" /> Retry
+                                </button>
+                                <button 
+                                  onClick={() => handleCancelJob(job.id)}
+                                  className="text-text-muted hover:text-danger transition-colors p-1"
+                                  title="Delete failed post"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </DeveloperOnly>
                           )}
                           {job.status === 'Scheduled' && (
-                            <div className="flex items-center gap-1">
-                              <button 
-                                onClick={() => handleEditSchedule(job.id, job.scheduled_time)}
-                                className="text-text-muted hover:text-primary transition-colors p-1"
-                                title="Edit scheduled time"
-                              >
-                                <CalendarIcon className="w-4 h-4" />
-                              </button>
-                              <button 
-                                onClick={() => handleCancelJob(job.id)}
-                                className="text-text-muted hover:text-danger transition-colors p-1"
-                                title="Cancel scheduled post"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
+                            <DeveloperOnly>
+                              <div className="flex items-center gap-1">
+                                <button 
+                                  onClick={() => handleEditSchedule(job.id, job.scheduled_time)}
+                                  className="text-text-muted hover:text-primary transition-colors p-1"
+                                  title="Edit scheduled time"
+                                >
+                                  <CalendarIcon className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  onClick={() => handleCancelJob(job.id)}
+                                  className="text-text-muted hover:text-danger transition-colors p-1"
+                                  title="Cancel scheduled post"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </DeveloperOnly>
                           )}
                         </div>
                         
@@ -459,29 +464,31 @@ export const PublishingCenter = () => {
                       </p>
                       
                       <div className="mt-auto pt-4 border-t border-border flex gap-2">
-                        <Button 
-                          variant="outline"
-                          onClick={() => handleScheduleApproved(content.id, content.platform)}
-                          className="flex-1 text-xs gap-1.5 h-8 bg-surface hover:bg-surface-hover"
-                          title="Schedule for later"
-                        >
-                          <CalendarIcon className="w-3 h-3" /> Schedule
-                        </Button>
-                        <Button 
-                          onClick={() => handlePublishApproved(content.id, content.platform)}
-                          className="flex-1 text-xs gap-1.5 h-8"
-                          title="Publish immediately"
-                        >
-                          <Send className="w-3 h-3" /> Publish
-                        </Button>
-                        <Button 
-                          variant="ghost"
-                          onClick={() => handleDeleteApproved(content.id)}
-                          className="px-2 h-8 text-text-muted hover:text-danger hover:bg-danger/10"
-                          title="Remove from queue"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
+                        <DeveloperOnly>
+                          <Button 
+                            variant="outline"
+                            onClick={() => handleScheduleApproved(content.id, content.platform)}
+                            className="flex-1 text-xs gap-1.5 h-8 bg-surface hover:bg-surface-hover"
+                            title="Schedule for later"
+                          >
+                            <CalendarIcon className="w-3 h-3" /> Schedule
+                          </Button>
+                          <Button 
+                            onClick={() => handlePublishApproved(content.id, content.platform)}
+                            className="flex-1 text-xs gap-1.5 h-8"
+                            title="Publish immediately"
+                          >
+                            <Send className="w-3 h-3" /> Publish
+                          </Button>
+                          <Button 
+                            variant="ghost"
+                            onClick={() => handleDeleteApproved(content.id)}
+                            className="px-2 h-8 text-text-muted hover:text-danger hover:bg-danger/10"
+                            title="Remove from queue"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </DeveloperOnly>
                       </div>
                     </CardContent>
                   </Card>

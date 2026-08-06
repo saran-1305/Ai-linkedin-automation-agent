@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     EMAIL_FROM_ADDRESS: str = "LinkedIn Growth Agent <onboarding@resend.dev>"
     FRONTEND_BASE_URL: str = "http://localhost:5173"
 
+    # Visual Intelligence Agent (stock photo search)
+    PEXELS_API_KEY: Optional[str] = None
+
     # Auth
     JWT_SECRET_KEY: Optional[str] = None
 

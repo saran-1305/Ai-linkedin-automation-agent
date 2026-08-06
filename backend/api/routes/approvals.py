@@ -24,6 +24,10 @@ class ApprovalPreviewResponse(BaseModel):
     content_preview: Optional[str] = None
     scheduled_time: Optional[datetime] = None
     expires_at: datetime
+    image_url: Optional[str] = None
+    image_attribution: Optional[str] = None
+    quality_score: Optional[float] = None
+    ai_reasoning: Optional[str] = None
 
 
 class ConsumeActionResponse(BaseModel):
@@ -108,11 +112,21 @@ def approve(token: str, request: Request, db: Session = Depends(get_db)):
     return {"job_id": job.id, "status": job.status.value}
 
 
-@router.post("/{token}/reject", response_model=ConsumeActionResponse)
-def reject(token: str, request: Request, db: Session = Depends(get_db)):
+@router.post("/{token}/request_changes", response_model=ConsumeActionResponse)
+def request_changes(token: str, request: Request, db: Session = Depends(get_db)):
     service = PublishingApprovalService(db)
     try:
-        job = service.consume(token, "reject", ip_address=_client_ip(request))
+        job = service.consume(token, "request_changes", ip_address=_client_ip(request))
+    except ApprovalError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"job_id": job.id, "status": job.status.value}
+
+
+@router.post("/{token}/cancel", response_model=ConsumeActionResponse)
+def cancel(token: str, request: Request, db: Session = Depends(get_db)):
+    service = PublishingApprovalService(db)
+    try:
+        job = service.consume(token, "cancel", ip_address=_client_ip(request))
     except ApprovalError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"job_id": job.id, "status": job.status.value}

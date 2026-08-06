@@ -318,9 +318,17 @@ class PlatformVariation(Base):
     
     # Explainability
     reasoning = Column(Text, nullable=True)
-    
+
+    # Visual Intelligence (Pexels)
+    image_url = Column(String(1000), nullable=True)
+    image_thumbnail_url = Column(String(1000), nullable=True)
+    image_source = Column(String(50), nullable=True)  # "pexels" | "manual"
+    image_external_id = Column(String(100), nullable=True)
+    image_attribution = Column(String(255), nullable=True)
+    image_selection_reasoning = Column(Text, nullable=True)
+
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    
+
     platform_content = relationship("PlatformContent", back_populates="variations")
     rule_validations = relationship("PlatformRuleValidation", back_populates="variation", cascade="all, delete-orphan")
 

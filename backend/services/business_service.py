@@ -15,16 +15,16 @@ class BusinessProfileService:
             return BusinessProfileResponse.model_validate(profile)
         return None
         
-    def get_all_profiles(self) -> List[BusinessProfileResponse]:
-        profiles = self.repository.get_all()
+    def get_all_profiles(self, user_id: int) -> List[BusinessProfileResponse]:
+        profiles = self.repository.get_all(user_id)
         return [BusinessProfileResponse.model_validate(p) for p in profiles]
 
-    def create_profile(self, profile_data: BusinessProfileCreate) -> BusinessProfileResponse:
+    def create_profile(self, profile_data: BusinessProfileCreate, user_id: int) -> BusinessProfileResponse:
         # Pass through the Business Understanding Agent pipeline first
         processed_data = self.agent.process_input(profile_data)
         
         # Save to DB via repository
-        db_profile = self.repository.create(processed_data)
+        db_profile = self.repository.create(processed_data, user_id)
         return BusinessProfileResponse.model_validate(db_profile)
 
     def update_profile(self, profile_id: int, profile_data: BusinessProfileUpdate) -> Optional[BusinessProfileResponse]:

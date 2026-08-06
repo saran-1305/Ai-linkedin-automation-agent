@@ -80,7 +80,7 @@ const Layout: React.FC = () => {
               }
             >
               <Home className="mr-3 h-4 w-4 flex-shrink-0" />
-              Command Center
+              AI Operations Dashboard
             </NavLink>
           </div>
 

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import List, Dict, Any, Type
 from datetime import datetime
@@ -55,22 +56,56 @@ class WorkflowEngine:
         ]
         
         context = await self._execute_sequence(business_id, agents_to_run)
-        
-        # Phase 5: Autonomous Content -> Publishing Pipeline
+
+        # Phase 5: Autonomous Content -> Visual Intelligence -> Quality Assurance -> Approval Email
+        #
+        # NOTE: this used to call pub_service.approve_content()+create_job_from_generated_content()
+        # directly here, silently auto-approving and scheduling without any human step whenever
+        # ai_operating_mode == 'autonomous'. That contradicts the platform's core guarantee that
+        # the *only* recurring human touchpoint is the approval email - so every generated post,
+        # autonomous mode or not, is now routed through backend/workflow/orchestrator.py's
+        # Visual Intelligence -> Quality Assurance -> mandatory approval-email gate instead.
         business = self.db.query(BusinessProfile).filter(BusinessProfile.id == business_id).first()
         if business and business.ai_operating_mode == 'autonomous':
             generated_ids = context.get("generated_content_ids", [])
             if generated_ids:
-                logger.info(f"Autonomous Mode Active: Scheduling {len(generated_ids)} posts directly to Publishing Queue.")
-                from publishing.services.content_publishing_service import ContentPublishingService
-                pub_service = ContentPublishingService(self.db)
-                
+                logger.info(f"Autonomous Mode Active: routing {len(generated_ids)} generated post(s) through Visual Intelligence, Quality Assurance, and the mandatory approval email.")
+                from models.content import GeneratedContent
+                from models.workflow_run import WorkflowRun, ContentPipelineRun, CycleStage, ContentPipelineStage, RunStatus
+                from workflow.orchestrator import AutonomousWorkflowOrchestrator
+
+                run = WorkflowRun(
+                    business_id=business_id,
+                    cycle_stage=CycleStage.COMPLETED,
+                    status=RunStatus.RUNNING,
+                    weekly_plan_id=context.get("weekly_plan_id"),
+                )
+                self.db.add(run)
+                self.db.commit()
+                self.db.refresh(run)
+
+                orchestrator = AutonomousWorkflowOrchestrator(self.db)
                 for cid in generated_ids:
                     try:
-                        pub_service.approve_content(cid, "AI Autonomous System")
-                        pub_service.create_job_from_generated_content(cid, "LinkedIn")
+                        content = self.db.query(GeneratedContent).filter(GeneratedContent.id == cid).first()
+                        if not content:
+                            continue
+                        pipeline = ContentPipelineRun(
+                            workflow_run_id=run.id,
+                            content_slot_id=content.content_slot_id,
+                            generated_content_id=content.id,
+                            stage=ContentPipelineStage.CONTENT_READY,
+                            status=RunStatus.RUNNING,
+                        )
+                        self.db.add(pipeline)
+                        self.db.commit()
+                        self.db.refresh(pipeline)
+                        # Orchestrator methods use asyncio.run() internally for their async
+                        # sub-calls (e.g. sending the approval email), so they must run off
+                        # this coroutine's own event loop thread.
+                        await asyncio.to_thread(orchestrator.advance_content_pipeline, pipeline.id)
                     except Exception as e:
-                        logger.error(f"Failed to auto-schedule content {cid}: {e}")
+                        logger.error(f"Failed to route generated content {cid} through the autonomous pipeline: {e}")
         
     async def run_publishing_pipeline(self, business_id: int, content_id: int):
         """

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Building2, BrainCircuit, Globe, Bell, Shield, Palette, Zap, Database, ChevronRight } from 'lucide-react';
+import { Settings, Building2, BrainCircuit, Globe, Bell, Shield, Palette, Zap, Database, ChevronRight, Code } from 'lucide-react';
 import WorkspaceSettingsTab from './components/WorkspaceSettingsTab';
 import AISettingsTab from './components/AISettingsTab';
 import PublishingSettingsTab from './components/PublishingSettingsTab';
@@ -8,7 +8,9 @@ import NotificationsSettingsTab from './components/NotificationsSettingsTab';
 import SecuritySettingsTab from './components/SecuritySettingsTab';
 import AppearanceSettingsTab from './components/AppearanceSettingsTab';
 import IntegrationsSettingsTab from './components/IntegrationsSettingsTab';
+import DeveloperSettingsTab from './components/DeveloperSettingsTab';
 import { Card, CardContent } from '../../components/ui/Card';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('workspace');
@@ -23,6 +25,11 @@ const SettingsPage: React.FC = () => {
     { id: 'appearance', name: 'Appearance', icon: Palette },
     { id: 'integrations', name: 'Integrations', icon: Zap },
   ];
+  
+  const { user } = useAuth();
+  if (user?.role === 'admin') {
+    tabs.push({ id: 'developer', name: 'Developer', icon: Code });
+  }
 
   return (
     <div className="space-y-6 animate-in pb-24 max-w-7xl mx-auto">
@@ -80,6 +87,7 @@ const SettingsPage: React.FC = () => {
               {activeTab === 'security' && <SecuritySettingsTab />}
               {activeTab === 'appearance' && <AppearanceSettingsTab />}
               {activeTab === 'integrations' && <IntegrationsSettingsTab />}
+              {activeTab === 'developer' && <DeveloperSettingsTab />}
             </CardContent>
           </Card>
         </div>

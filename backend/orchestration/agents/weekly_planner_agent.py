@@ -1,8 +1,7 @@
 from typing import Dict, Any
 import logging
-import asyncio
-from sqlalchemy.orm import Session
 from orchestration.agents.base import BaseAgent
+from execution.service import ExecutionService
 
 logger = logging.getLogger(__name__)
 
@@ -13,5 +12,5 @@ class WeeklyPlannerAgent(BaseAgent):
 
     async def execute(self, business_id: int, context: Dict[str, Any]) -> Dict[str, Any]:
         logger.info(f"[{self.name}] Generating Weekly Plan for Business {business_id}")
-        await asyncio.sleep(2)
-        return {"weekly_plan_id": 1}
+        plan = ExecutionService(self.db).generate_weekly_plan(business_id)
+        return {"weekly_plan_id": plan.id if plan else None}

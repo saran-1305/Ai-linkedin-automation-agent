@@ -4,6 +4,8 @@ export interface AuthUser {
   id: number;
   email: string;
   name?: string | null;
+  role: string;
+  developer_mode_enabled: boolean;
 }
 
 export interface TokenResponse {
@@ -12,6 +14,8 @@ export interface TokenResponse {
   user_id: number;
   email: string;
   name?: string | null;
+  role: string;
+  developer_mode_enabled: boolean;
 }
 
 export const authApi = {

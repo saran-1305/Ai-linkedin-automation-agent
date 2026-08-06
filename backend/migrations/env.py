@@ -23,6 +23,14 @@ from models.execution import *
 from models.strategy import *
 from models.publishing import *
 from models.user import User
+from models.workflow import *
+from models.orchestration import *
+from models.analytics import *
+from models.performance_intelligence import *
+from models.recommendation import *
+from models.workflow_run import WorkflowRun, ContentPipelineRun
+from models.workflow_schedule import WorkflowSchedule
+from models.system import *
 config = context.config
 
 config.set_main_option("sqlalchemy.url", str(settings.DATABASE_URL).replace('%', '%%'))
@@ -32,6 +40,15 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
+# apscheduler_jobs is created and owned by APScheduler's SQLAlchemyJobStore at
+# runtime (see publishing/scheduler/core.py), not by any SQLAlchemy model in
+# this app, so it will never be in target_metadata. Without this filter,
+# every autogenerate/check run flags it as a table to drop.
+def include_object(object, name, type_, reflected, compare_to):
+    if type_ == "table" and name == "apscheduler_jobs":
+        return False
+    return True
+
 def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
@@ -39,6 +56,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -53,7 +71,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, target_metadata=target_metadata, include_object=include_object,
         )
 
         with context.begin_transaction():

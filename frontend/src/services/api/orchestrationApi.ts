@@ -14,5 +14,10 @@ export const orchestrationApi = {
   triggerWeeklyPlanning: async (businessId: number) => {
     const response = await httpClient.post(`/orchestration/weekly-planning/${businessId}`);
     return response.data;
+  },
+
+  getWorkflowRun: async (businessId: number) => {
+    const response = await httpClient.get(`/orchestration/workflow-run/${businessId}`);
+    return response.data;
   }
 };

@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from api.dependencies import get_db
+from api.dependencies import get_db, get_current_user_id
 from schemas.business import BusinessProfileCreate, BusinessProfileUpdate, BusinessProfileResponse
 from services.business_service import BusinessProfileService
 from utils.extractors import extract_text_from_file
@@ -18,10 +18,10 @@ router = APIRouter(prefix="/business/profiles", tags=["Business Profile"])
 logger = logging.getLogger(__name__)
 
 @router.post("", response_model=BusinessProfileResponse, status_code=status.HTTP_201_CREATED)
-def create_profile(profile: BusinessProfileCreate, db: Session = Depends(get_db)):
+def create_profile(profile: BusinessProfileCreate, db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
     logger.info("Creating new business profile")
     service = BusinessProfileService(db)
-    return service.create_profile(profile)
+    return service.create_profile(profile, user_id)
 
 def process_extraction(task_id: str, combined_text: str):
     """Background task to process extracted text and populate business profile schema."""
@@ -86,9 +86,9 @@ def get_profile(profile_id: int, db: Session = Depends(get_db)):
     return profile
 
 @router.get("", response_model=List[BusinessProfileResponse])
-def get_all_profiles(db: Session = Depends(get_db)):
+def get_all_profiles(db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
     service = BusinessProfileService(db)
-    return service.get_all_profiles()
+    return service.get_all_profiles(user_id)
 
 @router.put("/{profile_id}", response_model=BusinessProfileResponse)
 def update_profile(profile_id: int, profile: BusinessProfileUpdate, db: Session = Depends(get_db)):

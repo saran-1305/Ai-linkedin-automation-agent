@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { authApi } from '../services/api/authApi';
 import { AUTH_TOKEN_STORAGE_KEY } from '../services/api/httpClient';
 
@@ -6,6 +7,8 @@ interface User {
   id: number;
   name: string;
   email: string;
+  role: string;
+  developer_mode_enabled: boolean;
 }
 
 interface AuthContextType {
@@ -23,6 +26,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
@@ -33,8 +37,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const persistSession = (token: string, id: number, email: string, name?: string | null) => {
-    const newUser: User = { id, email, name: name || email };
+  const persistSession = (token: string, id: number, email: string, role: string, devMode: boolean, name?: string | null) => {
+    const newUser: User = { id, email, name: name || email, role, developer_mode_enabled: devMode };
     localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
     setUser(newUser);
@@ -42,18 +46,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     const res = await authApi.login(email, password);
-    persistSession(res.access_token, res.user_id, res.email, res.name);
+    persistSession(res.access_token, res.user_id, res.email, res.role, res.developer_mode_enabled, res.name);
   };
 
   const register = async (email: string, password: string, name?: string) => {
     const res = await authApi.register(email, password, name);
-    persistSession(res.access_token, res.user_id, res.email, res.name);
+    persistSession(res.access_token, res.user_id, res.email, res.role, res.developer_mode_enabled, res.name);
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
+    queryClient.clear();
   };
 
   if (isLoading) {

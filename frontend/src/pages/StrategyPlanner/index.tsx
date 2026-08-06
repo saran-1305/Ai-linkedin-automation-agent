@@ -9,6 +9,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import DeveloperOnly from '../../components/DeveloperOnly';
 
 const ExplainabilityBadge = ({ reasoning, confidence, trends, competitors }: any) => {
   const [show, setShow] = useState(false);
@@ -156,17 +157,22 @@ export const StrategyPlanner = () => {
           <p className="text-text-secondary mb-8 leading-relaxed max-w-lg">
             The Strategy Planner synthesizes Business Profile, Brand Brain, Competitors, and Trend data into a unified master marketing plan.
           </p>
-          <Button
-            onClick={handleGenerate}
-            disabled={generating}
-            className="px-8 py-6 text-lg font-medium shadow-lg"
-          >
-            {generating ? (
-              <><RefreshCw className="w-6 h-6 mr-3 animate-spin" /> Generating Master Strategy...</>
-            ) : (
-              <><Zap className="w-6 h-6 mr-3" /> Generate Master Strategy</>
-            )}
-          </Button>
+          <DeveloperOnly>
+            <Button
+              onClick={handleGenerate}
+              disabled={generating}
+              className="px-8 py-6 text-lg font-medium shadow-lg"
+            >
+              {generating ? (
+                <><RefreshCw className="w-6 h-6 mr-3 animate-spin" /> Generating Master Strategy...</>
+              ) : (
+                <><Zap className="w-6 h-6 mr-3" /> Generate Master Strategy</>
+              )}
+            </Button>
+          </DeveloperOnly>
+          <div className="mt-4 text-text-muted text-sm italic">
+            This module operates automatically in the background.
+          </div>
         </Card>
       </div>
     );
@@ -233,15 +239,17 @@ export const StrategyPlanner = () => {
               <div className="text-2xl font-bold text-success">{Math.round(strategy.confidenceBreakdown.overall_confidence * 100)}%</div>
             </div>
           )}
-          <Button
-            variant="outline"
-            onClick={handleGenerate}
-            disabled={generating}
-            className="gap-2"
-          >
-            <RefreshCw className={`w-4 h-4 ${generating ? 'animate-spin' : ''}`} />
-            {generating ? 'Regenerating...' : 'Regenerate Strategy'}
-          </Button>
+          <DeveloperOnly>
+            <Button
+              variant="outline"
+              onClick={handleGenerate}
+              disabled={generating}
+              className="gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${generating ? 'animate-spin' : ''}`} />
+              {generating ? 'Regenerating...' : 'Regenerate Strategy'}
+            </Button>
+          </DeveloperOnly>
         </div>
       </div>
 

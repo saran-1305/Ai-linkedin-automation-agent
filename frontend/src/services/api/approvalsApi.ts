@@ -7,6 +7,10 @@ export interface ApprovalPreview {
   content_preview?: string | null;
   scheduled_time?: string | null;
   expires_at: string;
+  image_url?: string | null;
+  image_attribution?: string | null;
+  quality_score?: number | null;
+  ai_reasoning?: string | null;
 }
 
 export interface ApprovalActionResult {
@@ -45,8 +49,12 @@ export const approvalsApi = {
     const { data } = await httpClient.post(`/approvals/${token}/approve`);
     return data;
   },
-  reject: async (token: string): Promise<ApprovalActionResult> => {
-    const { data } = await httpClient.post(`/approvals/${token}/reject`);
+  requestChanges: async (token: string): Promise<ApprovalActionResult> => {
+    const { data } = await httpClient.post(`/approvals/${token}/request_changes`);
+    return data;
+  },
+  cancel: async (token: string): Promise<ApprovalActionResult> => {
+    const { data } = await httpClient.post(`/approvals/${token}/cancel`);
     return data;
   },
 };

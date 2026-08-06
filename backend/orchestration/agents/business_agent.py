@@ -1,8 +1,7 @@
 from typing import Dict, Any
 import logging
-import asyncio
-from sqlalchemy.orm import Session
 from orchestration.agents.base import BaseAgent
+from services.business_service import BusinessProfileService
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +11,8 @@ class BusinessAgent(BaseAgent):
         return "Business Agent"
 
     async def execute(self, business_id: int, context: Dict[str, Any]) -> Dict[str, Any]:
-        logger.info(f"[{self.name}] Analyzing Business Profile {business_id}")
-        await asyncio.sleep(2) # Mock processing time
-        return {"business_analysis": {"status": "completed", "score": 95}}
+        logger.info(f"[{self.name}] Validating Business Profile {business_id}")
+        profile = BusinessProfileService(self.db).get_profile(business_id)
+        if not profile:
+            raise ValueError(f"Business profile {business_id} not found or not ready.")
+        return {"business_analysis": {"status": "ready", "business_id": profile.id}}

@@ -76,6 +76,10 @@ const BusinessProfile: React.FC = () => {
       });
     } else if (profiles && profiles.length === 0) {
       setIsEditing(true);
+      reset({
+        company_name: '', website: '', industry: '', description: '', location: '', usp: '',
+        primary_audience: '', secondary_audience: '', pain_points: '', brand_voice: '', writing_style: '', marketing_goals: ''
+      });
     }
   }, [profiles, reset]);
 

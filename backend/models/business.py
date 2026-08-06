@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, JSON
+from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey
 from sqlalchemy.sql import func
 from database.base import Base
 
@@ -6,6 +6,7 @@ class BusinessProfile(Base):
     __tablename__ = "business_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True) # Making it nullable=True initially for migration compatibility
     company_name = Column(String, index=True, nullable=False)
     website = Column(String, nullable=True)
     industry = Column(String, index=True, nullable=False)

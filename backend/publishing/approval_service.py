@@ -1,3 +1,4 @@
+import logging
 import secrets
 from datetime import datetime, timedelta
 from typing import Optional
@@ -9,6 +10,8 @@ from services.email.factory import get_email_provider
 from services.email.renderer import render_email, html_to_text
 from services.email.base import EmailSendResult
 from config.settings import settings
+
+logger = logging.getLogger(__name__)
 
 APPROVAL_TOKEN_TTL_HOURS = 48
 
@@ -46,12 +49,41 @@ class PublishingApprovalService:
     def _get_variation(self, job: PublishingJob) -> Optional[PlatformVariation]:
         return self.db.query(PlatformVariation).filter(PlatformVariation.id == job.variation_id).first()
 
-    def _build_urls(self, token_value: str) -> tuple[str, str]:
+    def _build_urls(self, token_value: str) -> tuple[str, str, str]:
         base_url = settings.FRONTEND_BASE_URL.rstrip("/")
         return (
             f"{base_url}/approvals/{token_value}?action=approve",
-            f"{base_url}/approvals/{token_value}?action=reject",
+            f"{base_url}/approvals/{token_value}?action=request_changes",
+            f"{base_url}/approvals/{token_value}?action=cancel",
         )
+
+    def _ai_context(self, variation: Optional[PlatformVariation]) -> dict:
+        """Pulls the already-computed image + quality-score + reasoning for the
+        email, so the reviewer doesn't have to open the app to see why the AI
+        made this post."""
+        if not variation:
+            return {"image_url": None, "image_attribution": None, "quality_score": None, "ai_reasoning": None}
+
+        content = variation.platform_content.content if variation.platform_content else None
+        quality_score = None
+        ai_reasoning = None
+        if content and content.scores and content.scores.overall_quality is not None:
+            quality_score = round(content.scores.overall_quality, 1)
+        if content and content.reasoning:
+            reasoning_parts = [
+                content.reasoning.hook_strategy,
+                content.reasoning.body_strategy,
+            ]
+            ai_reasoning = " ".join(p for p in reasoning_parts if p)
+        elif variation.reasoning:
+            ai_reasoning = variation.reasoning
+
+        return {
+            "image_url": variation.image_url,
+            "image_attribution": variation.image_attribution,
+            "quality_score": quality_score,
+            "ai_reasoning": ai_reasoning,
+        }
 
     async def request_approval(self, job_id: int, recipient_email: str, ttl_hours: int = APPROVAL_TOKEN_TTL_HOURS) -> PublishingApprovalToken:
         job = self.db.query(PublishingJob).filter(PublishingJob.id == job_id).first()
@@ -87,7 +119,7 @@ class PublishingApprovalService:
         self.db.refresh(token)
 
         platform_name = variation.platform_content.platform_name if variation.platform_content else "LinkedIn"
-        approve_url, reject_url = self._build_urls(token_value)
+        approve_url, request_changes_url, cancel_url = self._build_urls(token_value)
 
         html = render_email(
             "approval_request.html",
@@ -96,8 +128,10 @@ class PublishingApprovalService:
             scheduled_time=job.scheduled_time.strftime("%b %d, %Y %I:%M %p UTC") if job.scheduled_time else "as soon as approved",
             content_preview=variation.body,
             approve_url=approve_url,
-            reject_url=reject_url,
+            request_changes_url=request_changes_url,
+            cancel_url=cancel_url,
             expires_at=expires_at.strftime("%b %d, %Y %I:%M %p UTC"),
+            **self._ai_context(variation),
         )
         result = await get_email_provider().send_email(
             to=recipient_email,
@@ -120,7 +154,7 @@ class PublishingApprovalService:
         job = token.job
         variation = self._get_variation(job)
         platform_name = variation.platform_content.platform_name if variation and variation.platform_content else "LinkedIn"
-        approve_url, reject_url = self._build_urls(token.token)
+        approve_url, request_changes_url, cancel_url = self._build_urls(token.token)
 
         hours_remaining = max(0, int((token.expires_at - datetime.utcnow()).total_seconds() // 3600))
 
@@ -131,9 +165,11 @@ class PublishingApprovalService:
             scheduled_time=job.scheduled_time.strftime("%b %d, %Y %I:%M %p UTC") if job.scheduled_time else "as soon as approved",
             content_preview=variation.body if variation else "",
             approve_url=approve_url,
-            reject_url=reject_url,
+            request_changes_url=request_changes_url,
+            cancel_url=cancel_url,
             expires_at=token.expires_at.strftime("%b %d, %Y %I:%M %p UTC"),
             hours_remaining=f"{hours_remaining} hour{'s' if hours_remaining != 1 else ''}",
+            **self._ai_context(variation),
         )
         result = await get_email_provider().send_email(
             to=token.recipient_email,
@@ -172,29 +208,49 @@ class PublishingApprovalService:
             "content_preview": variation.body if variation else None,
             "scheduled_time": job.scheduled_time,
             "expires_at": token.expires_at,
+            **self._ai_context(variation),
         }
 
     def consume(self, token_value: str, action: str, actor: Optional[str] = None, ip_address: Optional[str] = None) -> PublishingJob:
-        if action not in ("approve", "reject"):
-            raise ApprovalError("Action must be 'approve' or 'reject'.")
+        if action not in ("approve", "request_changes", "cancel"):
+            raise ApprovalError("Action must be 'approve', 'request_changes', or 'cancel'.")
 
         token = self._get_valid_token(token_value)
         job = token.job
         old_status = job.status
 
-        new_status = PublishingStatus.APPROVED if action == "approve" else PublishingStatus.CANCELLED
-        action_label = "approved" if action == "approve" else "rejected"
+        status_map = {
+            "approve": PublishingStatus.APPROVED,
+            "request_changes": PublishingStatus.AI_REVIEW,
+            "cancel": PublishingStatus.CANCELLED,
+        }
+        new_status = status_map[action]
 
         token.consumed_at = datetime.utcnow()
-        token.action_taken = action_label
+        token.action_taken = action
         job.status = new_status
 
         self._log_audit(
-            job.id, f"approval_{action_label}", actor=actor or token.recipient_email, token_id=token.id,
+            job.id, f"approval_{action}", actor=actor or token.recipient_email, token_id=token.id,
             previous_status=old_status.value if old_status else None,
             new_status=new_status.value, ip_address=ip_address,
         )
 
         self.db.commit()
+        self.db.refresh(job)
+
+        # Hand control back to the autonomous orchestrator to continue (approve/request_changes)
+        # or terminate (cancel) the content pipeline. Imported lazily: workflow/orchestrator.py
+        # imports this module, so a top-level import here would be circular.
+        try:
+            from models.workflow_run import ContentPipelineRun
+            from workflow.orchestrator import AutonomousWorkflowOrchestrator
+
+            pipeline = self.db.query(ContentPipelineRun).filter(ContentPipelineRun.publishing_job_id == job.id).first()
+            if pipeline:
+                AutonomousWorkflowOrchestrator(self.db).continue_after_approval(pipeline.id, action)
+        except Exception as e:
+            logger.error(f"Failed to continue autonomous workflow after '{action}' on job {job.id}: {e}")
+
         self.db.refresh(job)
         return job

@@ -7,13 +7,14 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config.settings import settings
 from api.dependencies import get_current_user_id
-from api.routes import business, content, content_imports, analysis, brand, competitors, trends, strategy, execution, publishing, workflow, analytics, analytics_dashboard, performance_ai, recommendations, settings as app_settings, ai_memory, orchestration, approvals, auth
+from api.routes import business, content, content_imports, analysis, brand, competitors, trends, strategy, execution, publishing, workflow, analytics, analytics_dashboard, performance_ai, recommendations, settings as app_settings, ai_memory, orchestration, approvals, auth, notifications
 from contextlib import asynccontextmanager
 from publishing.scheduler.core import scheduler as publishing_scheduler
 from analytics.services.analytics_scheduler import AnalyticsScheduler
 from analytics.services.analytics_collector import AnalyticsCollector
 from analytics.repositories.analytics_repository import AnalyticsRepository
 from publishing.approval_reminder_scheduler import approval_reminder_scheduler
+from workflow.scheduler import autonomous_scheduler
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -33,6 +34,11 @@ async def lifespan(app: FastAPI):
 
     await approval_reminder_scheduler.start()
 
+    # Autonomous AI Growth workflow: recovers any in-progress run left over
+    # from before a restart, then drives new cycles on each business's
+    # configured posting schedule.
+    await autonomous_scheduler.start()
+
     yield
 
     # Shutdown: Clean up background tasks
@@ -40,6 +46,7 @@ async def lifespan(app: FastAPI):
     publishing_scheduler.shutdown()
     await analytics_scheduler.stop()
     await approval_reminder_scheduler.stop()
+    await autonomous_scheduler.stop()
 
 def create_app() -> FastAPI:
     app = FastAPI(
@@ -88,6 +95,7 @@ def create_app() -> FastAPI:
     app.include_router(app_settings.router, prefix="/api", dependencies=protected)
     app.include_router(ai_memory.router, prefix="/api", dependencies=protected)
     app.include_router(orchestration.router, prefix="/api", dependencies=protected)
+    app.include_router(notifications.router, prefix="/api", dependencies=protected)
 
     @app.get("/health", tags=["Health"])
     async def health_check():

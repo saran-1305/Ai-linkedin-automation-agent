@@ -14,8 +14,12 @@ const agentDescriptions: Record<string, string> = {
   'Strategy Agent': 'Plans long-term roadmaps',
   'Weekly Planner Agent': 'Schedules weekly slots',
   'Content Generator Agent': 'Drafts posts and variations',
+  'Visual Intelligence Agent': 'Selects matching Pexels imagery',
+  'Quality Assurance Agent': 'Scores drafts before approval',
+  'Approval Agent': 'Awaiting your approval email decision',
   'Publishing Agent': 'Manages API scheduling',
   'Analytics Agent': 'Extracts insights from data',
+  'Learning Agent': 'Feeds performance back into Brand Memory',
 };
 
 interface AgentStatus {

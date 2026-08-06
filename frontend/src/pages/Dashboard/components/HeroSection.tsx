@@ -5,6 +5,7 @@ import { Button } from '../../../components/ui/Button';
 import { Network, Server, PlayCircle, Send, Lightbulb, Sparkles } from 'lucide-react';
 import { orchestrationApi } from '../../../services/api/orchestrationApi';
 import { businessApi } from '../../../services/api/businessApi';
+import DeveloperOnly from '../../../components/DeveloperOnly';
 
 export const HeroSection: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
@@ -32,15 +33,17 @@ export const HeroSection: React.FC = () => {
             <h1 className="text-3xl font-bold text-slate-100 mb-4">Good Morning 👋</h1>
             <div className="flex items-center gap-4">
               <p className="text-slate-400">Workspace: <span className="text-slate-200 font-medium">Acme Corp</span></p>
-              <Button
-                variant="premium"
-                size="sm" 
-                className="gap-2"
-                onClick={handleRunAI}
-                isLoading={loading}
-              >
-                <Sparkles className="w-4 h-4" /> Run Autonomous Engine
-              </Button>
+              <DeveloperOnly>
+                <Button
+                  variant="premium"
+                  size="sm" 
+                  className="gap-2"
+                  onClick={handleRunAI}
+                  isLoading={loading}
+                >
+                  <Sparkles className="w-4 h-4" /> Run Autonomous Engine
+                </Button>
+              </DeveloperOnly>
             </div>
           </div>
           

@@ -7,6 +7,7 @@ import {
   BarChart3, HelpCircle, CheckCircle, Smartphone,
   AlertTriangle, Crosshair, ListTree, ArrowRight, Star
 } from 'lucide-react';
+import DeveloperOnly from '../../components/DeveloperOnly';
 
 const ExplainabilityBadge = ({ reasoning, confidence }: any) => {
   const [show, setShow] = useState(false);
@@ -146,17 +147,22 @@ export const WeeklyPlanner = () => {
           <p className="text-text-secondary mb-8 leading-relaxed max-w-lg">
             Generate an ultra-granular, day-by-day execution blueprint based on your Master Strategy.
           </p>
-          <Button
-            onClick={handleGenerate}
-            disabled={generating}
-            className="px-8 py-6 text-lg font-medium shadow-lg"
-          >
-            {generating ? (
-              <><RefreshCw className="w-6 h-6 mr-3 animate-spin" /> Drafting Blueprint...</>
-            ) : (
-              <><Zap className="w-6 h-6 mr-3" /> Generate Execution Plan</>
-            )}
-          </Button>
+          <DeveloperOnly>
+            <Button
+              onClick={handleGenerate}
+              disabled={generating}
+              className="px-8 py-6 text-lg font-medium shadow-lg"
+            >
+              {generating ? (
+                <><RefreshCw className="w-6 h-6 mr-3 animate-spin" /> Drafting Blueprint...</>
+              ) : (
+                <><Zap className="w-6 h-6 mr-3" /> Generate Execution Plan</>
+              )}
+            </Button>
+          </DeveloperOnly>
+          <div className="mt-4 text-text-muted text-sm italic">
+            This module operates automatically in the background.
+          </div>
         </Card>
       </div>
     );
@@ -198,15 +204,17 @@ export const WeeklyPlanner = () => {
               <div className="text-2xl font-bold text-success">{Math.round(plan.confidence * 100)}%</div>
             </div>
           )}
-          <Button
-            variant="outline"
-            onClick={handleGenerate}
-            disabled={generating}
-            className="gap-2"
-          >
-            <RefreshCw className={`w-4 h-4 ${generating ? 'animate-spin' : ''}`} />
-            {generating ? 'Regenerating...' : 'Regenerate Plan'}
-          </Button>
+          <DeveloperOnly>
+            <Button
+              variant="outline"
+              onClick={handleGenerate}
+              disabled={generating}
+              className="gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${generating ? 'animate-spin' : ''}`} />
+              {generating ? 'Regenerating...' : 'Regenerate Plan'}
+            </Button>
+          </DeveloperOnly>
         </div>
       </div>
 
@@ -516,18 +524,20 @@ export const WeeklyPlanner = () => {
             
             {/* Action Bar */}
             <div className="mt-12 flex justify-center pb-8 pt-8 border-t border-border">
-              <Button 
-                size="lg"
-                onClick={async () => {
-                  if (confirm("This will archive the current plan and generate a fully optimized version. Proceed?")) {
-                    await api.post('/execution/optimize');
-                    await fetchPlan();
-                  }
-                }}
-                className="px-10 py-6 text-lg font-bold shadow-xl shadow-primary/20 gap-3"
-              >
-                <Zap className="w-6 h-6" /> Run Optimization Engine
-              </Button>
+              <DeveloperOnly>
+                <Button 
+                  size="lg"
+                  onClick={async () => {
+                    if (confirm("This will archive the current plan and generate a fully optimized version. Proceed?")) {
+                      await api.post('/execution/optimize');
+                      await fetchPlan();
+                    }
+                  }}
+                  className="px-10 py-6 text-lg font-bold shadow-xl shadow-primary/20 gap-3"
+                >
+                  <Zap className="w-6 h-6" /> Run Optimization Engine
+                </Button>
+              </DeveloperOnly>
             </div>
           </div>
         )}

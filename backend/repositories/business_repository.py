@@ -10,11 +10,13 @@ class BusinessProfileRepository:
     def get(self, profile_id: int) -> Optional[BusinessProfile]:
         return self.db.query(BusinessProfile).filter(BusinessProfile.id == profile_id).first()
 
-    def get_all(self) -> List[BusinessProfile]:
-        return self.db.query(BusinessProfile).all()
+    def get_all(self, user_id: int) -> List[BusinessProfile]:
+        return self.db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).all()
 
-    def create(self, profile: BusinessProfileCreate) -> BusinessProfile:
-        db_profile = BusinessProfile(**profile.model_dump())
+    def create(self, profile: BusinessProfileCreate, user_id: int) -> BusinessProfile:
+        profile_data = profile.model_dump()
+        profile_data["user_id"] = user_id
+        db_profile = BusinessProfile(**profile_data)
         self.db.add(db_profile)
         self.db.commit()
         self.db.refresh(db_profile)

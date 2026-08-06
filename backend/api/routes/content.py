@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel
 from database.session import get_db
 from content.orchestrator import AIContentOrchestrator
 from models.content import GeneratedContent, ContentDraft
 from models.execution import ContentSlot, WeeklyPlan
 from content.platforms.engine import MultiPlatformEngine
-from models.content import PlatformContent
+from models.content import PlatformContent, PlatformVariation
 
 router = APIRouter(prefix="/content", tags=["Content Generator"])
 
@@ -145,6 +146,29 @@ def generate_all_platforms(content_id: int, db: Session = Depends(get_db)):
             
     return {"status": "completed", "results": results}
 
+class ImageOverrideBody(BaseModel):
+    image_url: str
+    image_attribution: Optional[str] = None
+
+
+@router.patch("/variation/{variation_id}/image")
+def override_variation_image(variation_id: int, body: ImageOverrideBody, db: Session = Depends(get_db)):
+    """Optional manual override for the Visual Intelligence Agent's automatic image selection."""
+    variation = db.query(PlatformVariation).filter(PlatformVariation.id == variation_id).first()
+    if not variation:
+        raise HTTPException(status_code=404, detail="Platform variation not found")
+
+    variation.image_url = body.image_url
+    variation.image_thumbnail_url = body.image_url
+    variation.image_source = "manual"
+    variation.image_external_id = None
+    variation.image_attribution = body.image_attribution
+    variation.image_selection_reasoning = "Manually overridden by user."
+    db.commit()
+    db.refresh(variation)
+    return {"status": "success", "variation_id": variation.id, "image_url": variation.image_url}
+
+
 @router.get("/platform/{content_id}/{platform_name}")
 def get_platform_variations(content_id: int, platform_name: str, db: Session = Depends(get_db)):
     """Get the variations for a specific platform"""
@@ -169,6 +193,11 @@ def get_platform_variations(content_id: int, platform_name: str, db: Session = D
                 "hashtags": v.hashtags,
                 "optimization_score": v.optimization_score,
                 "reasoning": v.reasoning,
+                "image_url": v.image_url,
+                "image_thumbnail_url": v.image_thumbnail_url,
+                "image_source": v.image_source,
+                "image_attribution": v.image_attribution,
+                "image_selection_reasoning": v.image_selection_reasoning,
                 "rule_validations": [
                     {
                         "rule_name": r.rule_name,

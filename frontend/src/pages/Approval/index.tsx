@@ -3,9 +3,10 @@ import { useParams } from 'react-router-dom';
 import { approvalsApi, type ApprovalPreview } from '../../services/api/approvalsApi';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { CheckCircle, XCircle, Clock, Loader2, AlertTriangle, Share2 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Loader2, AlertTriangle, Share2, PencilLine, Sparkles } from 'lucide-react';
 
-type ViewState = 'loading' | 'ready' | 'error' | 'approved' | 'rejected';
+type ViewState = 'loading' | 'ready' | 'error' | 'approved' | 'changes_requested' | 'cancelled';
+type Action = 'approve' | 'request_changes' | 'cancel';
 
 const Approval: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -31,16 +32,19 @@ const Approval: React.FC = () => {
       });
   }, [token]);
 
-  const handleDecision = async (action: 'approve' | 'reject') => {
+  const handleDecision = async (action: Action) => {
     if (!token || isSubmitting) return;
     setIsSubmitting(true);
     try {
       if (action === 'approve') {
         await approvalsApi.approve(token);
         setState('approved');
+      } else if (action === 'request_changes') {
+        await approvalsApi.requestChanges(token);
+        setState('changes_requested');
       } else {
-        await approvalsApi.reject(token);
-        setState('rejected');
+        await approvalsApi.cancel(token);
+        setState('cancelled');
       }
     } catch (err: any) {
       setErrorMsg(err.response?.data?.detail || 'Something went wrong processing your decision.');
@@ -86,12 +90,22 @@ const Approval: React.FC = () => {
             </CardContent>
           )}
 
-          {state === 'rejected' && (
+          {state === 'changes_requested' && (
+            <CardContent className="p-12 flex flex-col items-center text-center gap-3">
+              <PencilLine className="w-10 h-10 text-warning" />
+              <h2 className="text-lg font-bold text-text-primary">Regenerating this post</h2>
+              <p className="text-text-secondary text-sm">
+                The AI is drafting a new version. You'll get a fresh approval email shortly.
+              </p>
+            </CardContent>
+          )}
+
+          {state === 'cancelled' && (
             <CardContent className="p-12 flex flex-col items-center text-center gap-3">
               <XCircle className="w-10 h-10 text-danger" />
-              <h2 className="text-lg font-bold text-text-primary">Post rejected</h2>
+              <h2 className="text-lg font-bold text-text-primary">Post cancelled</h2>
               <p className="text-text-secondary text-sm">
-                This post will not be published. It's been sent back for revision.
+                This post will not be published.
               </p>
             </CardContent>
           )}
@@ -115,12 +129,36 @@ const Approval: React.FC = () => {
                   <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mb-2">
                     {preview.platform_name || 'Content'} Preview
                   </div>
+                  {preview.image_url && (
+                    <div className="mb-3">
+                      <img
+                        src={preview.image_url}
+                        alt="Selected post visual"
+                        className="w-full rounded-lg object-cover max-h-64"
+                      />
+                      {preview.image_attribution && (
+                        <p className="text-[11px] text-text-muted mt-1">{preview.image_attribution}</p>
+                      )}
+                    </div>
+                  )}
                   <p className="text-sm text-text-primary whitespace-pre-wrap leading-relaxed">
                     {preview.content_preview || 'No preview available.'}
                   </p>
                 </div>
 
-                <div className="flex gap-3">
+                {(preview.quality_score || preview.ai_reasoning) && (
+                  <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-primary mb-1 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      AI Quality Review{preview.quality_score ? ` - ${preview.quality_score}/10` : ''}
+                    </div>
+                    {preview.ai_reasoning && (
+                      <p className="text-sm text-text-secondary">{preview.ai_reasoning}</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     className="flex-1 gap-2 bg-success hover:bg-success/90 border-none"
                     onClick={() => handleDecision('approve')}
@@ -129,12 +167,20 @@ const Approval: React.FC = () => {
                     <CheckCircle className="w-4 h-4" /> Approve &amp; Publish
                   </Button>
                   <Button
-                    variant="danger"
+                    variant="outline"
                     className="flex-1 gap-2"
-                    onClick={() => handleDecision('reject')}
+                    onClick={() => handleDecision('request_changes')}
                     isLoading={isSubmitting}
                   >
-                    <XCircle className="w-4 h-4" /> Reject
+                    <PencilLine className="w-4 h-4" /> Request Changes
+                  </Button>
+                  <Button
+                    variant="danger"
+                    className="flex-1 gap-2"
+                    onClick={() => handleDecision('cancel')}
+                    isLoading={isSubmitting}
+                  >
+                    <XCircle className="w-4 h-4" /> Cancel
                   </Button>
                 </div>
 
