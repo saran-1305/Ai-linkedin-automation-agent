@@ -82,7 +82,8 @@ You have just generated PART 1 of the strategic marketing plan. Here is what you
 Based on the Strategy Part 1 above, you must now generate PART 2 of the JSON output:
 5. Opportunity Engine: Score and prioritize all growth/content opportunities out of 100.
 6. Recommendations: Provide specific, actionable AI recommendations.
-7. Campaign Planner: Design full marketing campaigns (name, budget, platforms, content mix).
+7. Campaign Planner: Design full marketing campaigns (name, budget, platforms, content mix). 
+   *IMPORTANT:* The ONLY supported platform right now is 'LinkedIn'. Do NOT include Twitter, X, Instagram, or any other platforms.
 8. Weekly & Monthly Roadmaps: Build week-by-week and month-by-month timelines.
 9. Risk Assessment & Metrics: Identify risks and project KPIs (e.g., Follower Growth, Lead Gen).
 10. Confidence Breakdown: Rate your confidence in different areas based on the quality of provided intelligence.

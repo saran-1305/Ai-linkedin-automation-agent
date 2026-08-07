@@ -20,6 +20,9 @@ class Settings(BaseSettings):
 
     DATABASE_URL: PostgresDsn
     
+    # Redis Configuration
+    REDIS_URL: Optional[str] = None
+    
     # OAuth Configurations
     LINKEDIN_CLIENT_ID: Optional[str] = None
     LINKEDIN_CLIENT_SECRET: Optional[str] = None

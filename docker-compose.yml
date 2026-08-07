@@ -12,10 +12,26 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: ai_marketing_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
   backend:
     build: 
@@ -27,29 +43,47 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-linkedin_growth}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - CEREBRAS_API_KEY=${CEREBRAS_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - ANALYSIS_LLM_MODEL=${ANALYSIS_LLM_MODEL}
+      - BRAND_LLM_MODEL=${BRAND_LLM_MODEL}
+      - PEXELS_API_KEY=${PEXELS_API_KEY}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS}
       - LINKEDIN_CLIENT_ID=${LINKEDIN_CLIENT_ID}
       - LINKEDIN_CLIENT_SECRET=${LINKEDIN_CLIENT_SECRET}
-      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+      - OAUTH_REDIRECT_URI=${OAUTH_REDIRECT_URI:-http://localhost:80/publishing/callback}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-["http://localhost", "http://localhost:80", "http://localhost:5173"]}
+      - FRONTEND_BASE_URL=${FRONTEND_BASE_URL:-http://localhost:80}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ./backend:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+      # Data persistence for SQLite APScheduler fallback or other local data
+      - backend_data:/app/data
+    # Wait for DB, run alembic migrations, then start the server
+    command: sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
+      start_period: 20s
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${FRONTEND_API_URL:-http://localhost:8000}
     container_name: ai_marketing_frontend
     restart: unless-stopped
     ports:
@@ -66,3 +100,5 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
+  backend_data:

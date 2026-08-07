@@ -197,8 +197,8 @@ def archive_approved_content(content_id: int, db: Session = Depends(get_db)):
 @router.get("/jobs")
 def get_publishing_jobs(db: Session = Depends(get_db)):
     jobs = db.query(PublishingJob).filter(
-        PublishingJob.status != PublishingStatus.ARCHIVED,
-        PublishingJob.status != PublishingStatus.CANCELLED
+        PublishingJob.status != PublishingStatus.ARCHIVED.value,
+        PublishingJob.status != PublishingStatus.CANCELLED.value
     ).order_by(PublishingJob.created_at.desc()).all()
     return [{
         "id": job.id,
